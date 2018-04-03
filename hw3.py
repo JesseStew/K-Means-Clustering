@@ -12,40 +12,58 @@ import math
 
 
 #---------------------------------Variables------------------------------------
-k = int # Integer holding number of clusters
-data_file = "" # String holding name of file containing data
-data = [] # List holding lists for each line in dataFile
+k = int        # Integer holding number of clusters
+dataFile = ""  # String holding name of file containing data
+data = []      # List holding lists for each line in dataFile
+ranSeed = 90   # Arbitrary integer constant to seed random number generator
 #------------------------------------------------------------------------------
 
 
 
 #---------------------------------Classes/Functions----------------------------
 """
-    Takes name of data file as a parameter. Creates a list for each line
-    in data file. Appends the lists to the data variable.
+    Description: Creates a list for each line in data file. Appends the lists 
+                 to the data list.
+    Input:       Name of data file.
 """
-def get_data(data_file):
-    with open (data_file) as f: #Closes file after data is gathered
-        lines = f.read().splitlines() #Splits at each new line
-        #Creates a list for each line and converts data to floats
+def getData(dataFile):
+    with open (dataFile) as f:
+        lines = f.read().splitlines()
+        
+        # Creates a list for each line and converts data to floats
         for line in lines: 
-            line = [float(i) for i in line.split(' ')] #Float for calculations
-            data.append(line) #Append to data
+            line = [float(i) for i in line.split(' ')]
+            data.append(line)
 
 """
-    Takes the data as a parameter. Returns the number of unique cluster
-    values found within the data. Variable k will be set to this value.
+    Description: Finds unique clusters to determine value of k.
+    Input:       The pre-processed data (in the form of a list of lists).
+    Returns:     Number of unique clusters found within the data.
 """
-def num_clusters(data):
+def numClusters(data):
     count = int
-    temp_list = [] #Holds list of all cluster values found in data
+    tempList = [] # Holds list of all cluster values found in data
     for line in data:
-        temp_list.append(line[2])
-    #Use set to get unique values. Returns the length of the set.
-    count = len(set(temp_list)) 
+        tempList.append(line[2])
+    # Use set to get only unique values. Returns the length of the set.
+    count = len(set(tempList)) 
     return count
     
-        
+"""
+    Description: Find Euclidean distance measure of two nodes.
+    Input:       Two nodes from data.
+    Returns:     Euclidean distance of two nodes.
+"""
+def euclideanDist(curr_node, comp_node):
+    squared_euclidean = []
+    euclidean_dist = 0
+    for num in range(0,len(curr_node)-1):   #excludes final list item which contains cluster it belongs to.
+        curr = float(curr_node[num])
+        comp = float(comp_node[num])
+        squared_euclidean.append((curr-comp)*(curr-comp))
+    for itr in squared_euclidean:
+        euclidean_dist = euclidean_dist + itr
+    return math.sqrt(euclidean_dist)      
         
     
 #------------------------------------------------------------------------------
@@ -54,10 +72,10 @@ def num_clusters(data):
 
 #---------------------------------Program Main---------------------------------
 def main():
-    data_file = "synthetic_2D.txt"
-    get_data(data_file)
+    dataFile = "synthetic_2D.txt"
+    getData(dataFile)
     print(data)
-    k = num_clusters(data)
+    k = numClusters(data)
     print(k)
 	
 main()		
