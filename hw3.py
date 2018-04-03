@@ -1,8 +1,8 @@
 """ 
-Program: hw3.py
+Program:       hw3.py
 Programmed By: Brett Spatz and Jesse Stewart
-Description: K-Means Clustering Algorithm
-Trace Folder: stewart013
+Description:   K-Means Clustering Algorithm
+Trace Folder:  stewart013
 """
 
 #---------------------------------Imports--------------------------------------
@@ -35,6 +35,7 @@ def getData(dataFile):
             line = [float(i) for i in line.split(' ')]
             data.append(line)
 
+
 """
     Description: Finds unique clusters to determine value of k.
     Input:       The pre-processed data (in the form of a list of lists).
@@ -45,10 +46,12 @@ def numClusters(data):
     tempList = [] # Holds list of all cluster values found in data
     for line in data:
         tempList.append(line[2])
+        
     # Use set to get only unique values. Returns the length of the set.
     count = len(set(tempList)) 
     return count
-    
+
+ 
 """
     Description: Find Euclidean distance measure of two nodes.
     Input:       Two nodes from data.
@@ -63,8 +66,14 @@ def euclideanDist(curr_node, comp_node):
         squared_euclidean.append((curr-comp)*(curr-comp))
     for itr in squared_euclidean:
         euclidean_dist = euclidean_dist + itr
-    return math.sqrt(euclidean_dist)      
-        
+    return math.sqrt(euclidean_dist)
+
+
+"""
+    Description: Randomly determine the initial means.
+    Input:       Pre-processed data, number of means to find (k).
+"""   
+def setInitialMeans(k, data):
     
 #------------------------------------------------------------------------------
 
