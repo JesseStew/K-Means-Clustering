@@ -7,15 +7,20 @@ Trace Folder:  stewart013
 
 #---------------------------------Imports--------------------------------------
 import math
+import random
 #------------------------------------------------------------------------------
 
 
 
 #---------------------------------Variables------------------------------------
-k = int        # Integer holding number of clusters
+k = 3          # Integer holding number of clusters
 dataFile = ""  # String holding name of file containing data
 data = []      # List holding lists for each line in dataFile
-ranSeed = 90   # Arbitrary integer constant to seed random number generator
+randSeed = 90  # Arbitrary integer constant to seed random number generator
+means = []     # List holding mean values
+
+# List holding each cluster
+clusters = [[] for i in range(k)]
 #------------------------------------------------------------------------------
 
 
@@ -34,22 +39,6 @@ def getData(dataFile):
         for line in lines: 
             line = [float(i) for i in line.split(' ')]
             data.append(line)
-
-
-"""
-    Description: Finds unique clusters to determine value of k.
-    Input:       The pre-processed data (in the form of a list of lists).
-    Returns:     Number of unique clusters found within the data.
-"""
-def numClusters(data):
-    count = int
-    tempList = [] # Holds list of all cluster values found in data
-    for line in data:
-        tempList.append(line[2])
-        
-    # Use set to get only unique values. Returns the length of the set.
-    count = len(set(tempList)) 
-    return count
 
  
 """
@@ -70,10 +59,78 @@ def euclideanDist(curr_node, comp_node):
 
 
 """
-    Description: Randomly determine the initial means.
+    Description: Randomly determine the initial means and prints output.
     Input:       Pre-processed data, number of means to find (k).
 """   
 def setInitialMeans(k, data):
+    random.shuffle(data) # Randomly shuffle data in place
+    for num in range(k):
+        item = data[num]
+        item = item[:2]
+        means.append(item)
+    
+    # Matches output example in homework description (with slight changes)
+    print("Initial k means are")
+    for element in means:
+        print("mean[", means.index(element), "] is ", element, sep = '') 
+
+"""
+    Description: Assigns each object in the data to the cluster with the
+                 with the minimum euclidean distance between the cluster
+                 mean and the object.
+    Input:       List of means, pre-processed data.
+"""
+def assignToClusters(means, data):
+    for item in data:
+        distances = []
+        minDist = float
+        for element in means:
+            dist = euclideanDist(item, element)
+            distances.append(dist)
+        minDist = min(distances)
+        clusterIndex = distances.index(minDist)
+        for cluster in clusters:
+            if item in cluster:
+                cluster.remove(item)
+        clusters[clusterIndex].append(item)
+            
+        
+    
+
+"""
+    Description: Calculates new mean for each cluster. Updates means list
+                 with new values.
+    Input:       List of cluster lists and list of means for each cluster.
+""" 
+def calcNewMeans(clusters, oldMeans):
+    newMeans = []
+    for cluster in clusters:
+        clustSize = len(cluster)
+        clustMeans = []
+        firstMean = 0.0
+        secondMean = 0.0
+        for item in cluster:
+            firstMean = firstMean + item[0]
+            secondMean = secondMean + item[1]
+        firstMean = firstMean / clustSize
+        secondMean = secondMean / clustSize
+        clustMeans.append(firstMean)
+        clustMeans.append(secondMean)
+        newMeans.append(clustMeans)
+    return newMeans
+
+"""
+def KMeans(cluster, means, data, updatedMeans = None):
+    if means != updatedMeans:
+        if updatedMeans == None:
+            assignToClusters(means, data)
+            updatedMeans = calcNewMeans(clusters, updatedMeans)
+        else:    
+            assignToClusters(updatedMeans, data)
+            updatedMeans = calcNewMeans(clusters, updatedMeans)
+            KMeans(cluster, means, data, updatedMeans)
+    
+"""   
     
 #------------------------------------------------------------------------------
 
@@ -83,9 +140,23 @@ def setInitialMeans(k, data):
 def main():
     dataFile = "synthetic_2D.txt"
     getData(dataFile)
-    print(data)
-    k = numClusters(data)
-    print(k)
+    random.seed(randSeed) # Seed with constant int to get the same output
+    setInitialMeans(k, data)
+    assignToClusters(means, data)
+    updatedMeans = calcNewMeans(clusters, means)
+    print(updatedMeans)
+    print(clusters)
+    assignToClusters(updatedMeans, data)
+    updatedmMeans = calcNewMeans(clusters, means)
+    print(updatedmMeans)
+    print(clusters)
+
+    """
+    print("Cluster 0:", clusters[0])
+    print("Cluster 1:", clusters[1])
+    print("Cluster 2:", clusters[2])
+    """
+    
 	
 main()		
 #---------------------------------End of Program-------------------------------
