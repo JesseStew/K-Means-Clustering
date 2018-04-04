@@ -8,6 +8,7 @@ Trace Folder:  stewart013
 #---------------------------------Imports--------------------------------------
 import math
 import random
+from statistics import mode
 #------------------------------------------------------------------------------
 
 
@@ -119,6 +120,43 @@ def calcNewMeans(clusters, oldMeans):
         newMeans.append(clustMeans)
     return newMeans
 
+
+"""
+    Description: Calculates accuracy rate, formats and prints output specified
+                 in homework description.
+    Input:       Clusters after running algorithm
+    Output:      The label of each cluster (based off of majority class label),
+                 the cluster index (0-2), the size of each cluster, the data
+                 found in each cluster, the accuracy rate of the algorithm, and
+                 the number of misclassified objects in each cluster.
+"""
+def outputResults(clusters):
+    totalIncorrect = 0
+    totalCount = 0
+    for cluster in clusters:
+        print("\nCluster", clusters.index(cluster))
+        clusterSize = len(cluster)
+        print("Size of cluster", clusters.index(cluster), "is", clusterSize)
+        numIncorrect = 0
+        clusterLabels = []
+        for item in cluster:
+            clusterLabels.append(int(item[2]))
+        clusterLabel = mode(clusterLabels)
+        print("Objects in this cluster:")
+        for item in cluster:
+            if int(item[2]) != clusterLabel:
+                numIncorrect = numIncorrect + 1
+            print(item)
+        print("Cluster label:", int(clusterLabel))
+        print("Number of objects misclassified in this cluster:", numIncorrect)
+        totalIncorrect = totalIncorrect + numIncorrect
+        totalCount = totalCount + clusterSize
+    accuracyRate = ((totalCount - totalIncorrect) / totalCount) * 100
+    print("Overall accuracy rate is ", accuracyRate, "%", sep = '')
+         
+        
+    
+    
 """
 def KMeans(cluster, means, data, updatedMeans = None):
     if means != updatedMeans:
@@ -150,6 +188,7 @@ def main():
     updatedmMeans = calcNewMeans(clusters, means)
     print(updatedmMeans)
     print(clusters)
+    outputResults(clusters)
 
     """
     print("Cluster 0:", clusters[0])
