@@ -70,7 +70,6 @@ def setInitialMeans(k, data):
     means = []
     for num in range(k):
         item = data[num]
-        item = item[:2]
         means.append(item)
     
     # Matches output example in homework description (with slight changes)
