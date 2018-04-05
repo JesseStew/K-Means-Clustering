@@ -8,15 +8,22 @@ Trace Folder:  stewart013
 #---------------------------------Imports--------------------------------------
 import math
 import random
+from statistics import mode
 #------------------------------------------------------------------------------
 
 
 
 #---------------------------------Variables------------------------------------
-k = int        # Integer holding number of clusters
+k = 3          # Integer holding number of clusters
 dataFile = ""  # String holding name of file containing data
-data = []      # List holding lists for each line in dataFile
-ranSeed = 90   # Arbitrary integer constant to seed random number generator
+#data = []      # List holding lists for each line in dataFile
+randSeed = 90  # Arbitrary integer constant to seed random number generator
+#means = []     # List holding mean values
+
+clear = 100*'\n'
+
+# List holding each cluster
+clusters = [[] for i in range(k)]
 #------------------------------------------------------------------------------
 
 
@@ -35,22 +42,7 @@ def getData(dataFile):
         for line in lines: 
             line = [float(i) for i in line.split(' ')]
             data.append(line)
-
-
-"""
-    Description: Finds unique clusters to determine value of k.
-    Input:       The pre-processed data (in the form of a list of lists).
-    Returns:     Number of unique clusters found within the data.
-"""
-def numClusters(data):
-    count = int
-    tempList = [] # Holds list of all cluster values found in data
-    for line in data:
-        tempList.append(line[2])
-        
-    # Use set to get only unique values. Returns the length of the set.
-    count = len(set(tempList)) 
-    return count
+    return data
 
  
 """
@@ -71,46 +63,116 @@ def euclideanDist(curr_node, comp_node):
 
 
 """
-    Description: Randomly determine the initial means.
+    Description: Randomly determine the initial means and prints output.
     Input:       Pre-processed data, number of means to find (k).
-    Returns:     List of initial k random nodes.
 """   
 def setInitialMeans(k, data):
-    random.shuffle(data)
-    init_means = []
+    random.shuffle(data) # Randomly shuffle data in place
     for num in range(k):
-        init_means.append(data[num])
-    return init_means
+        item = data[num]
+        item = item[:2]
+        means.append(item)
+    
+    # Matches output example in homework description (with slight changes)
+    print("Initial k means are")
+    for element in means:
+        print("mean[", means.index(element), "] is ", element, sep = '') 
 
 """
-    Description: Assigns each node to the cluster which has the closest mean.
-    Input:       Pre-processed data, initially selected means.
-    Returns:     Dictionary with cluster numbers as keys containing 
-                 nodes that belong to that cluster.
-"""   
-def assignItems(init_means, data):
-    clusters = {}
-    for itr in init_means:
-        clusters[itr[2]] = []   #initializes clusters as keys to lists
-    for itr in data:
-        curr_dist = math.inf    #large number to be updated
-        clust_num = float       #for storing the cluster of min dist from node
-        for i in init_means:
-            dist = euclideanDist(itr, i)
-            if(dist < curr_dist):
-                clust_num = i[2]
-                curr_dist = dist
-                node = itr
-        clusters[clust_num].append(node)
+    Description: Assigns each object in the data to the cluster with the
+                 with the minimum euclidean distance between the cluster
+                 mean and the object.
+    Input:       List of means, pre-processed data.
+"""
+def assignToClusters(means, data):
+    for item in data:
+        distances = []
+        minDist = float
+        for element in means:
+            dist = euclideanDist(item, element)
+            distances.append(dist)
+        minDist = min(distances)
+        clusterIndex = distances.index(minDist)
+        for cluster in clusters:
+            if item in cluster:
+                cluster.remove(item)
+        clusters[clusterIndex].append(item)
+    return clusters
+            
+        
+    
+
+"""
+    Description: Calculates new mean for each cluster. Updates means list
+                 with new values.
+    Input:       List of cluster lists and list of means for each cluster.
+""" 
+def calcNewMeans(clusters, oldMeans):
+    newMeans = []
+    for cluster in clusters:
+        clustSize = len(cluster)
+        clustMeans = []
+        firstMean = 0.0
+        secondMean = 0.0
+        for item in cluster:
+            firstMean = firstMean + item[0]
+            secondMean = secondMean + item[1]
+        firstMean = firstMean / clustSize
+        secondMean = secondMean / clustSize
+        clustMeans.append(firstMean)
+        clustMeans.append(secondMean)
+        newMeans.append(clustMeans)
+    return newMeans
+
+
+"""
+    Description: Calculates accuracy rate, formats and prints output specified
+                 in homework description.
+    Input:       Clusters after running algorithm
+    Output:      The label of each cluster (based off of majority class label),
+                 the cluster index (0-2), the size of each cluster, the data
+                 found in each cluster, the accuracy rate of the algorithm, and
+                 the number of misclassified objects in each cluster.
+"""
+def outputResults(clusters):
+    totalIncorrect = 0
+    totalCount = 0
+    for cluster in clusters:
+        print("\nCluster", clusters.index(cluster))
+        clusterSize = len(cluster)
+        print("Size of cluster", clusters.index(cluster), "is", clusterSize)
+        numIncorrect = 0
+        clusterLabels = []
+        for item in cluster:
+            clusterLabels.append(int(item[2]))
+        clusterLabel = mode(clusterLabels)
+        print("Objects in this cluster:")
+        for item in cluster:
+            if int(item[2]) != clusterLabel:
+                numIncorrect = numIncorrect + 1
+            print(item)
+        print("Cluster label:", int(clusterLabel))
+        print("Number of objects misclassified in this cluster:", numIncorrect)
+        totalIncorrect = totalIncorrect + numIncorrect
+        totalCount = totalCount + clusterSize
+    accuracyRate = ((totalCount - totalIncorrect) / totalCount) * 100
+    print("Overall accuracy rate is ", accuracyRate, "%", sep = '')
+         
+        
+    
+    
+
+def KMeans(k, data): 
+    old_means = setInitialMeans(k, data)
+    print("old_means: ", old_means)
+    new_means = old_means #must be initialized to start  
+    count = 0   #allows do while functionality
+    while (old_means != new_means or count < 1):
+        clusters = assignToClusters(new_means, data)
+        new_means = calcNewMeans(clusters, old_means)
+        count = count + 1
     return clusters
 
-"""
-    Description: Calculates new mean for each cluster.
-    Input:       Dictionary with cluster numbers as keys containing 
-                 nodes that belong to that cluster.
-""" 
-def calcNewMeans(clusters):
-    
 #------------------------------------------------------------------------------
 
 
@@ -118,16 +180,33 @@ def calcNewMeans(clusters):
 #---------------------------------Program Main---------------------------------
 def main():
     dataFile = "synthetic_2D.txt"
-    getData(dataFile)
-    #print(data)
-    k = numClusters(data)
-    init_means = setInitialMeans(k, data)
-    clusters = assignItems(init_means, data)
-    print("k: ", k)
-    print("init_means: ", init_means)
-    print("clusters[init_means[0][2]]: ", clusters[init_means[0][2]])
-    print("\nclusters[init_means[1][2]]: ", clusters[init_means[1][2]])
-    print("\nclusters[init_means[2][2]]: ", clusters[init_means[2][2]])
+    data = getData(dataFile)
+    random.seed(randSeed) # Seed with constant int to get the same output
+    finalClusters = KMeans(k, data)
+    outputResults(finalClusters)
+    
+    '''
+    setInitialMeans(k, data)
+    assignToClusters(means, data)
+    updatedMeans = calcNewMeans(clusters, means)
+    print(updatedMeans)
+    print(clusters)
+    assignToClusters(updatedMeans, data)
+    #updatedmMeans = calcNewMeans(clusters, means)
+    #print(updatedmMeans)
+    #print(clusters)
+    #outputResults(clusters)
+    '''
+    
+    
+    
+    
+    """
+    print("Cluster 0:", clusters[0])
+    print("Cluster 1:", clusters[1])
+    print("Cluster 2:", clusters[2])
+    """
+    
 	
-main()
+main()		
 #---------------------------------End of Program-------------------------------
