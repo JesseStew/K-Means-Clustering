@@ -68,6 +68,7 @@ def euclideanDist(curr_node, comp_node):
 """   
 def setInitialMeans(k, data):
     random.shuffle(data) # Randomly shuffle data in place
+    means = []
     for num in range(k):
         item = data[num]
         item = item[:2]
@@ -77,6 +78,8 @@ def setInitialMeans(k, data):
     print("Initial k means are")
     for element in means:
         print("mean[", means.index(element), "] is ", element, sep = '') 
+    
+    return means
 
 """
     Description: Assigns each object in the data to the cluster with the
@@ -167,10 +170,15 @@ def KMeans(k, data):
     print("old_means: ", old_means)
     new_means = old_means #must be initialized to start  
     count = 0   #allows do while functionality
+    stor_means = []
     while (old_means != new_means or count < 1):
         clusters = assignToClusters(new_means, data)
         new_means = calcNewMeans(clusters, old_means)
         count = count + 1
+        stor_means.append(new_means)
+        if(count > 2):
+            old_means = stor_means[count-2]
+        print("count: ", count)
     return clusters
 
 #------------------------------------------------------------------------------
