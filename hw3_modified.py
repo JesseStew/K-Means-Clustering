@@ -9,7 +9,7 @@ Trace Folder:  stewart013
 #---------------------------------Imports--------------------------------------
 import math
 import random
-from statistics import mode
+from statistics import mode, StatisticsError
 import csv
 #------------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ def setInitialMeans(k, data):
     print("Initial k means are")
     for element in means:
         print("mean[", means.index(element), "] is ", element, sep = '') 
-    
+
     return means
 
 
@@ -100,6 +100,7 @@ def assignToClusters(means, data):
         for element in means:
             dist = euclideanDist(item, element)
             distances.append(dist)
+        print(distances)
         minDist = min(distances)
         clusterIndex = distances.index(minDist)
         for cluster in clusters:
@@ -117,8 +118,8 @@ def assignToClusters(means, data):
 def calcNewMeans(clusters, oldMeans):
     newMeans = []
     for cluster in clusters:
-        clustMeans = [sum(i) for i in zip(*cluster)]
-        clustMeans = clustMeans[:-1]
+        clustSize = len(cluster)
+        clustMeans = [sum(i)/clustSize for i in zip(*cluster)]
         newMeans.append(clustMeans)
     return newMeans
 
@@ -142,11 +143,12 @@ def outputResults(clusters):
         numIncorrect = 0
         clusterLabels = []
         for item in cluster:
-            clusterLabels.append(int(item[clusterSize - 1]))
+            itemSize = len(item)
+            clusterLabels.append(int(item[itemSize - 1]))
         clusterLabel = mode(clusterLabels)
         print("Objects in this cluster:")
         for item in cluster:
-            if int(item[clusterSize - 1]) != clusterLabel:
+            if int(item[itemSize - 1]) != clusterLabel:
                 numIncorrect = numIncorrect + 1
             print(item)
         print("Cluster label:", int(clusterLabel))
@@ -189,10 +191,8 @@ def main():
     dataFile = "seeds_dataset.txt"
     data = getData(dataFile)
     random.seed(randSeed) # Seed with constant int to get the same output
-    #setInitialMeans(k, data)
-    
     finalClusters = KMeans(k, data)
     outputResults(finalClusters)
-	
+
 main()		
 #---------------------------------End of Program-------------------------------
