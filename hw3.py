@@ -16,9 +16,7 @@ from statistics import mode
 #---------------------------------Variables------------------------------------
 k = 3          # Integer holding number of clusters
 dataFile = ""  # String holding name of file containing data
-data = []      # List holding lists for each line in dataFile
-randSeed = 90  # Arbitrary integer constant to seed random number generator
-means = []     # List holding mean values
+randSeed = 45  # Arbitrary integer constant to seed random number generator
 
 # List holding each cluster
 clusters = [[] for i in range(k)]
@@ -28,11 +26,13 @@ clusters = [[] for i in range(k)]
 
 #---------------------------------Classes/Functions----------------------------
 """
-    Description: Creates a list for each line in data file. Appends the lists 
-                 to the data list.
+    Description: Creates a list of lists for the data. Pre-processing is done
+                 as needed.
     Input:       Name of data file.
+    Returns:     List of lists containing data.
 """
 def getData(dataFile):
+    data = []
     with open (dataFile) as f:
         lines = f.read().splitlines()
         
@@ -40,6 +40,7 @@ def getData(dataFile):
         for line in lines: 
             line = [float(i) for i in line.split(' ')]
             data.append(line)
+    return data
 
  
 """
@@ -50,7 +51,7 @@ def getData(dataFile):
 def euclideanDist(curr_node, comp_node):
     squared_euclidean = []
     euclidean_dist = 0
-    for num in range(0,len(curr_node)-1):   #excludes final list item which contains cluster it belongs to.
+    for num in range(0,len(curr_node)-1): # Excluding known cluster
         curr = float(curr_node[num])
         comp = float(comp_node[num])
         squared_euclidean.append((curr-comp)*(curr-comp))
@@ -62,9 +63,11 @@ def euclideanDist(curr_node, comp_node):
 """
     Description: Randomly determine the initial means and prints output.
     Input:       Pre-processed data, number of means to find (k).
+    Returns:     List containing mean values.
 """   
 def setInitialMeans(k, data):
     random.shuffle(data) # Randomly shuffle data in place
+    means = []
     for num in range(k):
         item = data[num]
         item = item[:2]
@@ -73,13 +76,17 @@ def setInitialMeans(k, data):
     # Matches output example in homework description (with slight changes)
     print("Initial k means are")
     for element in means:
-        print("mean[", means.index(element), "] is ", element, sep = '') 
+        print("mean[", means.index(element), "] is ", element, sep = '')
+        
+    return means
+
 
 """
     Description: Assigns each object in the data to the cluster with the
                  with the minimum euclidean distance between the cluster
                  mean and the object.
     Input:       List of means, pre-processed data.
+    Output:      Updated list of clusters
 """
 def assignToClusters(means, data):
     for item in data:
@@ -94,14 +101,13 @@ def assignToClusters(means, data):
             if item in cluster:
                 cluster.remove(item)
         clusters[clusterIndex].append(item)
+    return clusters
             
-        
-    
 
 """
-    Description: Calculates new mean for each cluster. Updates means list
-                 with new values.
+    Description: Calculates new mean for each cluster.
     Input:       List of cluster lists and list of means for each cluster.
+    Returns:     List containing new mean values
 """ 
 def calcNewMeans(clusters, oldMeans):
     newMeans = []
@@ -155,21 +161,29 @@ def outputResults(clusters):
     print("Overall accuracy rate is ", accuracyRate, "%", sep = '')
          
         
-    
-    
+"""    
+    Description: Randomly assigns initial means for k clusters. Assigns objects
+                 in data to each cluster based on minimum distance.
+                 Recalculates means each time objects are re-clustered. Stops
+                 when the values of the means does not change anymore. (Stops
+                 when objects are not being reclustered)
+    Input:       Value for k, data to be clustered.
+    Returns:     Final clusters after convergence criteria is met.
 """
-def KMeans(cluster, means, data, updatedMeans = None):
-    if means != updatedMeans:
-        if updatedMeans == None:
-            assignToClusters(means, data)
-            updatedMeans = calcNewMeans(clusters, updatedMeans)
-        else:    
-            assignToClusters(updatedMeans, data)
-            updatedMeans = calcNewMeans(clusters, updatedMeans)
-            KMeans(cluster, means, data, updatedMeans)
-    
-"""   
-    
+def KMeans(k, data): 
+    old_means = setInitialMeans(k, data)
+    new_means = old_means # Must be initialized to start  
+    count = 0   # Allows do while functionality
+    stor_means = []
+    while (old_means != new_means or count < 1):
+        clusters = assignToClusters(new_means, data)
+        new_means = calcNewMeans(clusters, old_means)
+        count = count + 1
+        stor_means.append(new_means)
+        if(count > 2):
+            old_means = stor_means[count-2]
+    return clusters
+
 #------------------------------------------------------------------------------
 
 
@@ -177,25 +191,10 @@ def KMeans(cluster, means, data, updatedMeans = None):
 #---------------------------------Program Main---------------------------------
 def main():
     dataFile = "synthetic_2D.txt"
-    getData(dataFile)
+    data = getData(dataFile)
     random.seed(randSeed) # Seed with constant int to get the same output
-    setInitialMeans(k, data)
-    assignToClusters(means, data)
-    updatedMeans = calcNewMeans(clusters, means)
-    print(updatedMeans)
-    print(clusters)
-    assignToClusters(updatedMeans, data)
-    updatedmMeans = calcNewMeans(clusters, means)
-    print(updatedmMeans)
-    print(clusters)
-    outputResults(clusters)
-
-    """
-    print("Cluster 0:", clusters[0])
-    print("Cluster 1:", clusters[1])
-    print("Cluster 2:", clusters[2])
-    """
-    
+    finalClusters = KMeans(k, data)
+    outputResults(finalClusters)
 	
 main()		
 #---------------------------------End of Program-------------------------------
